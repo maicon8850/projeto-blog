@@ -1,5 +1,6 @@
 package br.com.montreal.projeto_blog.model;
 
+
 public class UsuarioLogin {
 
     private Long id;
