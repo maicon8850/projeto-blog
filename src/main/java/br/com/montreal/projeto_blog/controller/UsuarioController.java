@@ -2,9 +2,12 @@ package br.com.montreal.projeto_blog.controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import br.com.montreal.projeto_blog.dto.UsuarioDTO;
+import br.com.montreal.projeto_blog.dto.UsuarioResponseDTO;
 import br.com.montreal.projeto_blog.model.JwtResponse;
 import br.com.montreal.projeto_blog.model.Usuario;
 import br.com.montreal.projeto_blog.model.UsuarioLogin;
@@ -17,16 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-/**
- * ✅ Requisitos do Projeto - Usuário (/api/usuarios):
- * - POST /cadastrar: Criar novo usuário.
- * - PUT /atualizar/{id}: Atualizar um usuário existente.
- * - DELETE /deletar/{id}: Excluir um usuário.
- * - GET /all: Listar todos os usuários.
- * - GET /id/{id}: Buscar usuário por ID.
- * - POST /logar: Autenticar usuário e gerar token JWT.
- */
 
 @RestController
 @RequestMapping("/usuarios")
@@ -44,18 +37,21 @@ public class UsuarioController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    // ✅ GET /usuarios/all - Lista todos os usuários
+    // ✅ GET /usuarios/all - Lista todos os usuários como ResponseDTO
     @GetMapping("/all")
-    public ResponseEntity<List<Usuario>> getAll() {
-
-        return ResponseEntity.ok(usuarioRepository.findAll());
+    public ResponseEntity<List<UsuarioResponseDTO>> getAll() {
+        List<UsuarioResponseDTO> usuarios = usuarioRepository.findAll()
+                .stream()
+                .map(u -> new UsuarioResponseDTO(u.getId(), u.getNome(), u.getUsuario(), u.getFoto()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(usuarios);
     }
 
-    // ✅ GET /usuarios/id/{id} - Retorna um usuário pelo ID
+    // ✅ GET /usuarios/id/{id} - Retorna um usuário pelo ID como ResponseDTO
     @GetMapping("/id/{id}")
-    public ResponseEntity<Usuario> getById(@PathVariable Long id) {
+    public ResponseEntity<UsuarioResponseDTO> getById(@PathVariable Long id) {
         return usuarioRepository.findById(id)
-                .map(ResponseEntity::ok)
+                .map(u -> ResponseEntity.ok(new UsuarioResponseDTO(u.getId(), u.getNome(), u.getUsuario(), u.getFoto())))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -73,24 +69,29 @@ public class UsuarioController {
         }
     }
 
-    // ✅ POST /usuarios/cadastrar - Criação de novo usuário
+    // ✅ POST /usuarios/cadastrar - Recebe DTO e retorna ResponseDTO
     @PostMapping("/cadastrar")
-    public ResponseEntity<Usuario> postUsuario(@Valid @RequestBody Usuario usuario) {
+    public ResponseEntity<UsuarioResponseDTO> postUsuario(@Valid @RequestBody UsuarioDTO dto) {
+        Usuario usuario = new Usuario(null, dto.getNome(), dto.getUsuario(), dto.getSenha(), dto.getFoto(), null);
+
         return usuarioService.cadastrarUsuario(usuario)
-                .map(resposta -> ResponseEntity.status(HttpStatus.CREATED).body(resposta))
+                .map(u -> ResponseEntity.status(HttpStatus.CREATED)
+                        .body(new UsuarioResponseDTO(u.getId(), u.getNome(), u.getUsuario(), u.getFoto())))
                 .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
     }
 
-    // ✅ PUT /usuarios/atualizar/{id} - Atualização de usuário existente
+    // ✅ PUT /usuarios/atualizar/{id} - Atualiza com DTO e retorna ResponseDTO
     @PutMapping("/atualizar/{id}")
-    public ResponseEntity<Usuario> putUsuario(@PathVariable Long id, @Valid @RequestBody Usuario usuario) {
-        usuario.setId(id);
+    public ResponseEntity<UsuarioResponseDTO> putUsuario(@PathVariable Long id,
+                                                         @Valid @RequestBody UsuarioDTO dto) {
+        Usuario usuario = new Usuario(id, dto.getNome(), dto.getUsuario(), dto.getSenha(), dto.getFoto(), null);
+
         return usuarioService.atualizarUsuario(usuario)
-                .map(resposta -> ResponseEntity.ok(resposta))
+                .map(u -> ResponseEntity.ok(new UsuarioResponseDTO(u.getId(), u.getNome(), u.getUsuario(), u.getFoto())))
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // ✅ DELETE /usuarios/deletar/{id} - Exclusão de usuário
+    // ✅ DELETE /usuarios/deletar/{id}
     @DeleteMapping("/deletar/{id}")
     public ResponseEntity<Void> deleteUsuario(@PathVariable Long id) {
         Optional<Usuario> usuario = usuarioRepository.findById(id);

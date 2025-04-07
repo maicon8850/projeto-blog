@@ -1,11 +1,13 @@
 package br.com.montreal.projeto_blog.controller;
 
-
+import br.com.montreal.projeto_blog.dto.PostagemDTO;
+import br.com.montreal.projeto_blog.dto.PostagemResponseDTO;
 import br.com.montreal.projeto_blog.model.Postagem;
+import br.com.montreal.projeto_blog.model.Tema;
+import br.com.montreal.projeto_blog.model.Usuario;
 import br.com.montreal.projeto_blog.repository.PostagemRepository;
-
-
 import br.com.montreal.projeto_blog.repository.TemaRepository;
+import br.com.montreal.projeto_blog.repository.UsuarioRepository;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,91 +18,137 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-@RestController // Marca a classe como um Controller REST (Requisito: definir endpoints)
-@RequestMapping("/postagens") // Endpoint base: /postagens
-@CrossOrigin(origins = "*", allowedHeaders = "*") // Permite requisições de outras origens
+@RestController
+@RequestMapping("/postagens")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @SecurityRequirement(name = "bearerAuth")
 public class PostagemController {
 
-    @Autowired // Injeção de dependência: abstrai a criação manual dos repositórios
+    @Autowired
     private PostagemRepository postagemRepository;
 
     @Autowired
     private TemaRepository temaRepository;
 
-    // Requisito: GET / - Listar todas as postagens
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    // ✅ GET /postagens
     @GetMapping
-    public ResponseEntity<List<Postagem>> getAll() {
-        return ResponseEntity.ok(postagemRepository.findAll());
+    public ResponseEntity<List<PostagemResponseDTO>> getAll() {
+        List<PostagemResponseDTO> lista = postagemRepository.findAll().stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(lista);
     }
 
-    // Requisito: GET /{id} - Buscar postagem por ID
+    // ✅ GET /postagens/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<Postagem> getById(@PathVariable Long id) {
+    public ResponseEntity<PostagemResponseDTO> getById(@PathVariable Long id) {
         return postagemRepository.findById(id)
-                .map(ResponseEntity::ok)
+                .map(post -> ResponseEntity.ok(toResponseDTO(post)))
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    // Método complementar: GET /titulo/{titulo} - Filtrar postagens por título (opcional)
+    // ✅ GET /postagens/titulo/{titulo}
     @GetMapping("/titulo/{titulo}")
-    public ResponseEntity<List<Postagem>> getByTitulo(@PathVariable String titulo) {
-        return ResponseEntity.ok(postagemRepository.findAllByTituloContainingIgnoreCase(titulo));
+    public ResponseEntity<List<PostagemResponseDTO>> getByTitulo(@PathVariable String titulo) {
+        List<PostagemResponseDTO> lista = postagemRepository
+                .findAllByTituloContainingIgnoreCase(titulo)
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(lista);
     }
 
-    // Método complementar: GET /autor/{nome} - Filtrar postagens por nome do autor (opcional)
+    // ✅ GET /postagens/autor/{nome}
     @GetMapping("/autor/{nome}")
-    public ResponseEntity<List<Postagem>> getByAutor(@PathVariable String nome) {
-        return ResponseEntity.ok(postagemRepository.findAllByUsuario_NomeContainingIgnoreCase(nome));
+    public ResponseEntity<List<PostagemResponseDTO>> getByAutor(@PathVariable String nome) {
+        List<PostagemResponseDTO> lista = postagemRepository
+                .findAllByUsuario_NomeContainingIgnoreCase(nome)
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(lista);
     }
 
-    // Requisito: POST / - Criar uma nova postagem
+    // ✅ POST /postagens
     @PostMapping
-    public ResponseEntity<Postagem> post(@Valid @RequestBody Postagem postagem) {
-        // Verifica se o tema associado existe (requisito: manter integridade referencial)
-        if (temaRepository.existsById(postagem.getTema().getId())) {
-            // Cria a postagem e retorna status 201 (Created)
-            return ResponseEntity.status(HttpStatus.CREATED).body(postagemRepository.save(postagem));
-        }
-        // Caso o tema não exista, retorna Bad Request
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    public ResponseEntity<PostagemResponseDTO> post(@Valid @RequestBody PostagemDTO dto) {
+
+        Tema tema = temaRepository.findById(dto.getTemaId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tema não encontrado"));
+
+        // Pegando o usuário logado (no seu sistema real, substitua pela autenticação JWT se quiser)
+        Usuario usuario = usuarioRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado"));
+
+        Postagem postagem = new Postagem();
+        postagem.setTitulo(dto.getTitulo());
+        postagem.setTexto(dto.getTexto());
+        postagem.setTema(tema);
+        postagem.setUsuario(usuario);
+
+        Postagem salva = postagemRepository.save(postagem);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(salva));
     }
 
-    // Requisito: PUT /{id} - Atualizar uma postagem existente
+    // ✅ PUT /postagens/{id}
     @PutMapping("/{id}")
-    public ResponseEntity<Postagem> put(@PathVariable Long id, @Valid @RequestBody Postagem postagem) {
-        // Verifica se a postagem existe; se não, retorna 404 (Not Found)
-        if (!postagemRepository.existsById(id))
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<PostagemResponseDTO> put(@PathVariable Long id, @Valid @RequestBody PostagemDTO dto) {
+        Postagem postagem = postagemRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        // Verifica se o tema associado existe; se não, retorna 400 (Bad Request)
-        if (!temaRepository.existsById(postagem.getTema().getId()))
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        Tema tema = temaRepository.findById(dto.getTemaId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tema não encontrado"));
 
-        // Define o ID para atualização e salva a postagem atualizada
-        postagem.setId(id);
-        return ResponseEntity.ok(postagemRepository.save(postagem));
+        postagem.setTitulo(dto.getTitulo());
+        postagem.setTexto(dto.getTexto());
+        postagem.setTema(tema);
+
+        Postagem atualizada = postagemRepository.save(postagem);
+        return ResponseEntity.ok(toResponseDTO(atualizada));
     }
 
-    // Requisito: DELETE /{id} - Excluir uma postagem existente
+    // ✅ DELETE /postagens/{id}
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
-        Optional<Postagem> postagem = postagemRepository.findById(id);
-        if (postagem.isEmpty())
+        if (!postagemRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
+        }
         postagemRepository.deleteById(id);
     }
 
-    // Requisito: GET /filtro?autor={id}&tema={id} - Filtrar postagens por autor e/ou tema
+    // ✅ GET /postagens/filtro?autor=...&tema=...
     @GetMapping("/filtro")
-    public ResponseEntity<List<Postagem>> getByAutorAndTema(
+    public ResponseEntity<List<PostagemResponseDTO>> getByAutorAndTema(
             @RequestParam(required = false) String autor,
             @RequestParam(required = false) Long tema) {
 
-        // A lógica de filtro (por autor e/ou tema) está encapsulada no método do repositório
-        return ResponseEntity.ok(postagemRepository.findByAutorAndTema(autor, tema));
+        List<PostagemResponseDTO> lista = postagemRepository
+                .findByAutorAndTema(autor, tema)
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(lista);
+    }
+
+    // ✅ Conversão de entidade para DTO de resposta
+    private PostagemResponseDTO toResponseDTO(Postagem postagem) {
+        return new PostagemResponseDTO(
+                postagem.getId(),
+                postagem.getTitulo(),
+                postagem.getTexto(),
+                postagem.getData(),
+                postagem.getTema().getDescricao(),
+                postagem.getUsuario().getNome()
+        );
     }
 }
