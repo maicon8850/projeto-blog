@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import javax.validation.Valid;
 
-
 import br.com.montreal.projeto_blog.model.JwtResponse;
 import br.com.montreal.projeto_blog.model.Usuario;
 import br.com.montreal.projeto_blog.model.UsuarioLogin;
@@ -17,14 +16,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 /**
  * ✅ Requisitos do Projeto - Usuário (/api/usuarios):
  * - POST /cadastrar: Criar novo usuário.
- * - PUT /{id}: Atualizar um usuário existente.
- * - DELETE /{id}: Excluir um usuário.
- * - GET /: Listar todos os usuários.
- * - GET /{id}: Buscar usuário por ID.
+ * - PUT /atualizar/{id}: Atualizar um usuário existente.
+ * - DELETE /deletar/{id}: Excluir um usuário.
+ * - GET /all: Listar todos os usuários.
+ * - GET /id/{id}: Buscar usuário por ID.
  * - POST /logar: Autenticar usuário e gerar token JWT.
  */
 
@@ -33,7 +31,6 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UsuarioController {
 
-    // 🔹 Injeção de dependência: aplicando o princípio da inversão de controle (IoC)
     @Autowired
     private UsuarioService usuarioService;
 
@@ -43,14 +40,14 @@ public class UsuarioController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    // ✅ GET /usuarios - Lista todos os usuários cadastrados
-    @GetMapping
+    // ✅ GET /usuarios/all - Lista todos os usuários
+    @GetMapping("/all")
     public ResponseEntity<List<Usuario>> getAll() {
         return ResponseEntity.ok(usuarioRepository.findAll());
     }
 
-    // ✅ GET /usuarios/{id} - Retorna um usuário pelo ID
-    @GetMapping("/{id}")
+    // ✅ GET /usuarios/id/{id} - Retorna um usuário pelo ID
+    @GetMapping("/id/{id}")
     public ResponseEntity<Usuario> getById(@PathVariable Long id) {
         return usuarioRepository.findById(id)
                 .map(ResponseEntity::ok)
@@ -79,17 +76,17 @@ public class UsuarioController {
                 .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
     }
 
-    // ✅ PUT /usuarios/{id} - Atualização de usuário existente
-    @PutMapping("/{id}")
+    // ✅ PUT /usuarios/atualizar/{id} - Atualização de usuário existente
+    @PutMapping("/atualizar/{id}")
     public ResponseEntity<Usuario> putUsuario(@PathVariable Long id, @Valid @RequestBody Usuario usuario) {
-        usuario.setId(id); // Garante que estamos atualizando o usuário correto
+        usuario.setId(id);
         return usuarioService.atualizarUsuario(usuario)
                 .map(resposta -> ResponseEntity.ok(resposta))
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // ✅ DELETE /usuarios/{id} - Exclusão de usuário
-    @DeleteMapping("/{id}")
+    // ✅ DELETE /usuarios/deletar/{id} - Exclusão de usuário
+    @DeleteMapping("/deletar/{id}")
     public ResponseEntity<Void> deleteUsuario(@PathVariable Long id) {
         Optional<Usuario> usuario = usuarioRepository.findById(id);
         if (usuario.isEmpty())

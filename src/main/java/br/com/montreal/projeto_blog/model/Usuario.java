@@ -1,15 +1,15 @@
 package br.com.montreal.projeto_blog.model;
 
-import java.util.Collection;
+import java.util.List;
 
+import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Table(name = "tb_usuarios")
@@ -34,25 +34,26 @@ public class Usuario {
     @Size(max = 5000, message = "O link da foto não pode ser maior que 5000 caracteres")
     private String foto;
 
-    // Construtor vazio (obrigatório para JPA)
-    public Usuario() {
-    }
+    @Enumerated(EnumType.STRING)
+    private TipoUsuario tipoUsuario; // ✅ Novo campo enum
 
-    // Construtor com parâmetros
-    public Usuario(Long id, String nome, String usuario, String senha, String foto) {
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.REMOVE)
+    @JsonIgnoreProperties("usuario") // ✅ Corrigido
+    private List<Postagem> postagem;
+
+    public Usuario() { }
+
+    // ✅ Construtor completo com tipoUsuario
+    public Usuario(Long id, String nome, String usuario, String senha, String foto, TipoUsuario tipoUsuario) {
         this.id = id;
         this.nome = nome;
         this.usuario = usuario;
         this.senha = senha;
         this.foto = foto;
+        this.tipoUsuario = tipoUsuario;
     }
 
-    // Relacionamento 1:N com Postagem
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.REMOVE)
-    @JsonIgnoreProperties("usuario")
-    private Collection<Postagem> postagem;  /// talvez mudar para List
-
-    // Getters e Setters
+    // ✅ Getters e Setters
     public Long getId() {
         return id;
     }
@@ -93,11 +94,19 @@ public class Usuario {
         this.foto = foto;
     }
 
-    public Collection<Postagem> getPostagem() {
+    public TipoUsuario getTipoUsuario() {
+        return tipoUsuario;
+    }
+
+    public void setTipoUsuario(TipoUsuario tipoUsuario) {
+        this.tipoUsuario = tipoUsuario;
+    }
+
+    public List<Postagem> getPostagem() {
         return postagem;
     }
 
-    public void setPostagem(Collection<Postagem> postagem) {
+    public void setPostagem(List<Postagem> postagem) {
         this.postagem = postagem;
     }
 }
