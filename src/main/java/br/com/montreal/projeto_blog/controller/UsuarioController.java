@@ -11,6 +11,8 @@ import br.com.montreal.projeto_blog.model.UsuarioLogin;
 import br.com.montreal.projeto_blog.repository.UsuarioRepository;
 import br.com.montreal.projeto_blog.security.JwtUtils;
 import br.com.montreal.projeto_blog.service.UsuarioService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/usuarios")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
+@Tag(name = "usuario")
+@SecurityRequirement(name = "bearerAuth")
 public class UsuarioController {
 
     @Autowired
@@ -43,6 +47,7 @@ public class UsuarioController {
     // ✅ GET /usuarios/all - Lista todos os usuários
     @GetMapping("/all")
     public ResponseEntity<List<Usuario>> getAll() {
+
         return ResponseEntity.ok(usuarioRepository.findAll());
     }
 

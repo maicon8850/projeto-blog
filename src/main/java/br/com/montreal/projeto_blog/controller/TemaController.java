@@ -7,6 +7,7 @@ import javax.validation.Valid;
 
 import br.com.montreal.projeto_blog.model.Tema;
 import br.com.montreal.projeto_blog.repository.TemaRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/temas")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
+@SecurityRequirement(name = "bearerAuth")
 public class TemaController {
 
     @Autowired

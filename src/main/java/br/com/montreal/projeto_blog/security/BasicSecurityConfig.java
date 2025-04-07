@@ -51,18 +51,19 @@ public class BasicSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable() // ❌ Desativa CSRF, pois não há formulários web
-                .cors()           // ✅ Permite chamadas de outras origens
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) // ✅ REST não mantém sessão
+                .csrf().disable()
+                .cors().and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/usuarios/logar", "/usuarios/cadastrar").permitAll() // ✅ Rotas públicas (login e cadastro)
-                .antMatchers(HttpMethod.OPTIONS.name()).permitAll() // ✅ Pré-voo de CORS liberado
-                .anyRequest().authenticated() // ✅ Todas as outras rotas exigem autenticação
+                .antMatchers("/usuarios/logar", "/usuarios/cadastrar").permitAll()
+                .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .antMatchers(HttpMethod.OPTIONS.name()).permitAll()
+                .anyRequest().authenticated()
                 .and()
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // ✅ Aplica filtro JWT
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build(); // 🚧 Constrói e retorna a cadeia de segurança final
+        return http.build();
     }
+
 }

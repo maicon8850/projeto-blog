@@ -6,6 +6,7 @@ import br.com.montreal.projeto_blog.repository.PostagemRepository;
 
 
 import br.com.montreal.projeto_blog.repository.TemaRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import java.util.Optional;
 @RestController // Marca a classe como um Controller REST (Requisito: definir endpoints)
 @RequestMapping("/postagens") // Endpoint base: /postagens
 @CrossOrigin(origins = "*", allowedHeaders = "*") // Permite requisições de outras origens
+@SecurityRequirement(name = "bearerAuth")
 public class PostagemController {
 
     @Autowired // Injeção de dependência: abstrai a criação manual dos repositórios
