@@ -1,11 +1,17 @@
 package br.com.montreal.projeto_blog.model;
 
-
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+
+import antlr.collections.List;
 
 @Entity
 @Table(name = "tb_temas")
@@ -15,7 +21,7 @@ public class Tema {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "O Atributo Descrição é obrigatório")
+    @NotNull(message = "O Atributo Descrição é obrigatório")
     private String descricao;
 
     @OneToMany(mappedBy = "tema", cascade = CascadeType.ALL)

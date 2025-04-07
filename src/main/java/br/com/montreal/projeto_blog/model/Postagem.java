@@ -1,24 +1,23 @@
 package br.com.montreal.projeto_blog.model;
+
 import java.time.LocalDateTime;
 
+import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@Entity  // diz ao JPA que essa classe é uma entidade
-@Table(name= "tb_postagens") // nome da tabela do banco de dados
-
+@Entity // Indica que essa classe é uma entidade JPA, representando uma tabela no banco
+@Table(name= "tb_postagens") // Define o nome da tabela
 public class Postagem {
 
-    @Id  // chave or
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Chave primária auto-incrementada
     private Long id;
 
-    // Anotação que
     @NotBlank(message = "O atributo é obrigatório!")
     @Size(min = 5, max = 100, message = "O atributo título deve conter no mínimo 05 e no máximo 100 caracteres")
     private String titulo;
@@ -27,17 +26,18 @@ public class Postagem {
     @Size(min = 10, max = 1000, message = "O atributo título deve conter no mínimo 10 e no máximo 1000 caracteres")
     private String texto;
 
-    @UpdateTimestamp
+    @UpdateTimestamp // Atualiza automaticamente a data quando a postagem é modificada
     private LocalDateTime data;
 
-    @ManyToOne
-    @JsonIgnoreProperties("postagem")
+    @ManyToOne // Associação: Muitas postagens podem pertencer a um tema (requisito de relacionamento)
+    @JsonIgnoreProperties("postagem") // Evita loop infinito na serialização JSON
     private Tema tema;
 
-    @ManyToOne
+    @ManyToOne // Associação: Muitas postagens pertencem a um único usuário
     @JsonIgnoreProperties("postagem")
     private Usuario usuario;
 
+    // Getters e Setters (Encapsulamento: acesso controlado aos atributos)
     public Long getId() {
         return id;
     }
@@ -85,5 +85,4 @@ public class Postagem {
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
     }
-
 }
