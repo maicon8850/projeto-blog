@@ -24,8 +24,10 @@ Esta aplicação foi construída em Java com o framework Spring Boot. Ela é res
 - Spring Security
 - JWT (JSON Web Token)
 - Banco de Dados: MySQL (ou PostgreSQL)
+- Docker 
 - Maven
 - Swagger (OpenAPI)
+- SonarQube (para análise de qualidade de código)
 
 ---
 
