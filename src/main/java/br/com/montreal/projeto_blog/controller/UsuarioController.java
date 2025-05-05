@@ -1,5 +1,6 @@
 package br.com.montreal.projeto_blog.controller;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -63,7 +65,8 @@ public class UsuarioController {
         if (usuario.isPresent()) {
             String token = jwtUtils.generateToken(usuario.get());
             return ResponseEntity.ok(
-                    new JwtResponse(token, usuario.get().getNome(), usuario.get().getUsuario()));
+              new JwtResponse(token, usuario.get().getId(), usuario.get().getNome(), usuario.get().getUsuario())
+            );
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -101,4 +104,6 @@ public class UsuarioController {
         usuarioRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+
 }

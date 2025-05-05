@@ -50,7 +50,7 @@ public class Usuario {
         this.usuario = usuario;
         this.senha = senha;
         this.foto = foto;
-        this.tipoUsuario = tipoUsuario;
+        //this.tipoUsuario = tipoUsuario;
     }
 
     // ✅ Getters e Setters
@@ -94,13 +94,15 @@ public class Usuario {
         this.foto = foto;
     }
 
-    public TipoUsuario getTipoUsuario() {
-        return tipoUsuario;
-    }
 
-    public void setTipoUsuario(TipoUsuario tipoUsuario) {
-        this.tipoUsuario = tipoUsuario;
-    }
+  // ❌ REMOVER esses métodos também:
+  // public TipoUsuario getTipoUsuario() {
+  //     return tipoUsuario;
+  // }
+
+  // public void setTipoUsuario(TipoUsuario tipoUsuario) {
+  //     this.tipoUsuario = tipoUsuario;
+  // }
 
     public List<Postagem> getPostagem() {
         return postagem;

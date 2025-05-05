@@ -1,79 +1,61 @@
 package br.com.montreal.projeto_blog.security;
 
-
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 
+import br.com.montreal.projeto_blog.model.Usuario;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import br.com.montreal.projeto_blog.model.Usuario;
-
 /**
- * ✅ Requisito 5: Classe responsável por fornecer os dados do usuário para o Spring Security.
- * Implementa a interface UserDetails, usada para autenticação e autorização.
+ * ✅ Representa o usuário autenticado no sistema.
+ * Implementa UserDetails para que o Spring Security reconheça e use.
  */
 public class UserDetailsImpl implements UserDetails {
 
-    private static final long serialVersionUID = 1L;
+  private final Usuario usuario;
 
-    // Armazena o e-mail (login) do usuário
-    private String userName;
+  public UserDetailsImpl(Usuario usuario) {
+    this.usuario = usuario;
+  }
 
-    // Armazena a senha do usuário
-    private String password;
+  public Usuario getUsuario() {
+    return usuario;
+  }
 
-    // Autoridades (perfis, papéis) - ainda não utilizado no projeto
-    private List<GrantedAuthority> authorities;
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    // Você pode retornar roles aqui se usar permissões por perfil
+    return Collections.emptyList();
+  }
 
-    /**
-     * ✅ Construtor que recebe o objeto Usuario e extrai os dados relevantes para autenticação
-     */
-    public UserDetailsImpl(Usuario user) {
-        this.userName = user.getUsuario(); // Define o login (e-mail)
-        this.password = user.getSenha();   // Define a senha
-    }
+  @Override
+  public String getPassword() {
+    return usuario.getSenha();
+  }
 
-    // Construtor vazio necessário para o Spring
-    public UserDetailsImpl() { }
+  @Override
+  public String getUsername() {
+    return usuario.getUsuario();
+  }
 
-    // Retorna a lista de permissões (ainda vazia neste projeto)
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
-    }
+  @Override
+  public boolean isAccountNonExpired() {
+    return true;
+  }
 
-    @Override
-    public String getPassword() {
-        return password; // Retorna a senha
-    }
+  @Override
+  public boolean isAccountNonLocked() {
+    return true;
+  }
 
-    @Override
-    public String getUsername() {
-        return userName; // Retorna o login (e-mail)
-    }
+  @Override
+  public boolean isCredentialsNonExpired() {
+    return true;
+  }
 
-    // A conta não está expirada
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    // A conta não está bloqueada
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    // As credenciais (senha) não estão expiradas
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    // A conta está ativa
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+  @Override
+  public boolean isEnabled() {
+    return true;
+  }
 }
